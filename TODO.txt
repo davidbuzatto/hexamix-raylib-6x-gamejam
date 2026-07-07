@@ -1,0 +1,90 @@
+Hex-Merge Color Puzzle
+
+Concept:
+A strategic hex-placement puzzle. The player receives colored hexagon pieces one at a time and chooses where to place them on a hexagonal board. Placing a piece next to a color-compatible neighbor triggers an automatic merge, mixing the two colors into a new one (paint-style subtractive mixing, themed around hex color codes). The board fills over time; the game ends when no more pieces fit. A rotating target color adds a secondary scoring objective on top of the base score-attack loop.
+
+Board:
+- Hexagon-shaped grid, radius 2 (19 cells total), using axial coordinates.
+- Small enough to fit entirely on screen at once and to balance/test quickly within the jam window.
+
+Color Palette & Mixing Rule:
+Colors are organized on a 12-position RYB (Red/Yellow/Blue) color wheel: 3 primary, 3 secondary, 6 tertiary.
+Each non-primary color is the channel-wise RGB average (rounded) of its two parent colors, giving one reusable blend function for the whole system: 
+    blend(colorA, colorB) = round((colorA + colorB) / 2) per channel.
+
+Primary (P)
+
+Red    | `#FF3B30` | (255, 59, 48)
+Yellow | `#FFCC00` | (255, 204, 0)
+Blue   | `#007AFF` | (0, 122, 255)
+
+
+Secondary (S) — Primary + Primary
+
+Orange | Red + Yellow  | `#FF8418` | (255, 132, 24)
+Green  | Yellow + Blue | `#80A380` | (128, 163, 128)
+Purple | Blue + Red    | `#805B98` | (128, 91, 152)
+
+
+Tertiary (T) — Primary + adjacent Secondary (phase 2 / stretch, see Scope)
+
+Red-Orange    | Red + Orange    | `#FF6024` | (255, 96, 36)
+Yellow-Orange | Yellow + Orange | `#FFA80C` | (255, 168, 12)
+Yellow-Green  | Yellow + Green  | `#C0B840` | (192, 184, 64)
+Blue-Green    | Blue + Green    | `#408FC0` | (64, 143, 192)
+Blue-Purple   | Blue + Purple   | `#406BCC` | (64, 107, 204)
+Red-Purple    | Red + Purple    | `#C04B64` | (192, 75, 100)
+
+
+Wheel adjacency (valid merge pairs):
+Circular order: Red → Red-Orange → Orange → Yellow-Orange → Yellow → Yellow-Green → Green → Blue-Green → Blue → Blue-Purple → Purple → Red-Purple → (back to Red).
+
+A color may only merge with its direct neighbors on the wheel (never with itself, never with a non-adjacent color). This keeps the valid-merge table small and avoids combinatorial explosion when tertiaries are added later — same rule, just a longer wheel.
+
+
+Piece Queue:
+    - Only primary colors (Red/Yellow/Blue) are spawned into the queue, chosen at random.
+    - The player sees the current piece plus a short preview of upcoming piece(s) (1-2 ahead) to allow planning.
+    - Player places the current piece by clicking an empty cell on the board.
+
+Merge Behavior:
+    - Automatic: when a piece is placed adjacent to an existing piece whose color is a valid wheel-neighbor, they merge immediately into the resulting blended color, freeing one of the two cells.
+    - Same-color neighbors do **not** merge — they simply occupy space, forcing the player to manage the board layout deliberately.
+    - Only one merge rule applies for the jam MVP: 
+        primary+primary → secondary.
+        Primary/secondary+secondary/tertiary merges are part of the phase-2 tertiary expansion (same blend function, wider adjacency table).
+
+
+Objective & Progression
+    - Hybrid score-attack + rotating target: one secondary color is shown on screen as the current "target" (displayed with its hex code, e.g. "Target: #805B98", reinforcing the hex theme).
+    - Reaching the target color via any merge scores bonus points and rotates in a new target.
+    - No fixed "win" state — the loop is endless score-attack, same spirit as 2048.
+
+Game Over
+    - The game ends when the board is full and the current piece cannot be placed in any empty cell (no empty cells remain). Final score is the result.
+
+UI Layout
+    - Hex board centered on screen.
+    - Target color swatch + hex code shown prominently.
+    - Current piece and next-piece preview shown in a corner.
+    - Score shown top/corner.
+
+Scope Plan (6 days, solo)
+
+    Essential (days 1-4):
+    - Hex grid with axial coordinates, rendering.
+    - Piece queue (primary colors only) + preview.
+    - Click-to-place input.
+    - Automatic merge logic (primary+primary → secondary, wheel-adjacency check).
+    - Color table (primary + secondary) and blend function.
+    - Game-over detection.
+    - Score tracking and display.
+
+    Phase 2 / if time remains (days 5-6):
+    - Tertiary color tier: extend the wheel adjacency table and color list using the same blend function (no new merge logic needed, addresses the "too simple" concern once the core loop is proven).
+    - Target-color system with hex code display.
+    - Merge animation (color/scale interpolation) and sound.
+    - Game-over screen with final score.
+    - Visual polish (background, particles).
+
+    Cut if time is tight: animations, sound, target-color system (game still works as pure score-attack without it). Tertiary tier is the first stretch item to add back once essential scope is stable — it reuses the same blend formula, so it's additive rather than a redesign.
