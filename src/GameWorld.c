@@ -26,7 +26,7 @@ typedef enum ColorLimit {
 
 static void createHexGrid( GameWorld *gw, int q, float radius );
 static void connectHexGrid( Hex *hexGrid, int hexCount );
-static void connectHexToNeighbors( Hex *hexGrid, int hexCount );
+static void connectHexToNeighbors( int sourceIndex, Hex *hexGrid, int hexCount );
 
 static unsigned int pollColorQueue( void );
 static void offerColorQueue( unsigned int color );
@@ -81,7 +81,7 @@ static int colorQueueSize = 0;
 static int gridId = 5;
 static ColorLimit colorLimit = COLOR_LIMIT_PRIMARY;
 static bool randomizeColorQueueFeeder = false;
-static bool showHexConnections = true;
+static bool showHexConnections = false;
 
 /**
  * @brief Creates a dinamically allocated GameWorld struct instance.
@@ -101,6 +101,7 @@ GameWorld *createGameWorld( void ) {
     }*/
 
     gridId = clampInt( gridId, 0, ( sizeof( gridQuantities ) / sizeof( gridQuantities[0] ) ) - 1 );
+
     createHexGrid( gw, gridQuantities[gridId], gridRadii[gridId] );
     connectHexGrid( gw->hexGrid, gw->hexCount );
     gw->score = 0;
@@ -152,9 +153,7 @@ void drawGameWorld( GameWorld *gw ) {
         mouseHoverDrawHex.radius = mouseOverHex->radius;
         drawHexHighlight( &mouseHoverDrawHex );
     }
-
-    //connectHexToNeighbors( &gw->hexGrid[20], gw->hexCount );
-
+    
     drawHud( gw );
 
     EndDrawing();
@@ -196,13 +195,14 @@ static void createHexGrid( GameWorld *gw, int centerLineQuantity, float radius )
 
 static void connectHexGrid( Hex *hexGrid, int hexCount ) {
     for ( int i = 0; i < hexCount; i++ ) {
-        connectHexToNeighbors( &hexGrid[i], hexCount );
+        connectHexToNeighbors( i, hexGrid, hexCount );
     }
 }
 
-static void connectHexToNeighbors( Hex *source, int hexCount ) {
+static void connectHexToNeighbors( int sourceIndex, Hex *hexGrid, int hexCount ) {
 
     // probe scan
+    Hex *source = &hexGrid[sourceIndex];
     int angle = 0;
     int angleInc = 60;
     int targetFoundCount = 0;
@@ -213,7 +213,7 @@ static void connectHexToNeighbors( Hex *source, int hexCount ) {
             source->center.y + ( source->apothem * 2 ) * sinf( DEG2RAD * angle )
         };
         for ( int t = 0; t < hexCount; t++ ) {
-            Hex *target = &source[t];
+            Hex *target = &hexGrid[t];
             if ( source != target ) {
                 if ( CheckCollisionCircles( probe, 10, target->center, 10 ) ) {
                     source->neighbors[targetFoundCount++] = target;

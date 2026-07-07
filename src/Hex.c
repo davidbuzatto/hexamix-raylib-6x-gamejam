@@ -43,7 +43,7 @@ void drawHexGrid( Hex *hexGrid, int hexCount, bool showConnections ) {
         drawHex( h );
     }
     if ( showConnections ) {
-        drawHexGridConnections( hexGrid, hexCount, 20 );
+        drawHexGridConnections( hexGrid, hexCount, -1 );
     }
 }
 
@@ -56,7 +56,7 @@ static void drawHexConnections( Hex *h ) {
     }
 }
 static void drawHexGridConnections( Hex *hexGrid, int hexCount, int hexPos ) {
-    if ( hexPos != -1 ) {
+    if ( hexPos >= 0 ) {
         if ( hexPos >= 0 && hexPos < hexCount ) {
             drawHexConnections( &hexGrid[hexPos] );
         }
