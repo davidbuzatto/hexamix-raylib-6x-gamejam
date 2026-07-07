@@ -3,7 +3,7 @@
 #define trace( ... ) TraceLog( LOG_INFO, __VA_ARGS__ );
 
 #define MAX_HEX_GRID_COUNT 500
-#define COLOR_QUEUE_CAPACITY 3
+#define COLOR_QUEUE_CAPACITY 5
 
 #define HEX_BLANK_COLOR   0x000000ff
 

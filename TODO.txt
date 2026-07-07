@@ -1,4 +1,5 @@
 Create Icon
+When blending, randomize start like a roulete and animate;
 
 Game rules:
 

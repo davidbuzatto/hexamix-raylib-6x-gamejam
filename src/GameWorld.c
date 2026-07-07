@@ -32,7 +32,7 @@ static unsigned int pollColorQueue( void );
 static void offerColorQueue( unsigned int color );
 static void feedColorQueue( bool randomize, int colorLimitIndex );
 
-static void checkAndBlend( Hex *h );
+static int checkAndBlend( Hex *h );
 
 static void drawHud( GameWorld *gw );
 
@@ -80,7 +80,7 @@ static int colorQueueSize = 0;
 
 static int gridId = 5;
 static ColorLimit colorLimit = COLOR_LIMIT_PRIMARY;
-static bool randomizeColorQueueFeeder = false;
+static bool randomizeColorQueueFeeder = true;
 static bool showHexConnections = false;
 
 /**
@@ -131,7 +131,7 @@ void updateGameWorld( GameWorld *gw, float delta ) {
     if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
         if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
             mouseOverHex->color = pollColorQueue();
-            checkAndBlend( mouseOverHex );
+            gw->score += checkAndBlend( mouseOverHex );
             feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
         }
     }
@@ -272,26 +272,42 @@ static void feedColorQueue( bool randomize, int colorLimitIndex ) {
 
 }
 
-// TODO: needs to improve -> use DFS
-static void checkAndBlend( Hex *h ) {
+// checks all neightbors and blend with the last compatible
+static int checkAndBlend( Hex *h ) {
+
+    int points = 0;
+    int lastBlendColor =  HEX_BLANK_COLOR;
+
     for ( int i = 0; i < 6; i++ ) {
         Hex *t = h->neighbors[i];
         if ( t != NULL ) {
             int blendColor = colorBlend( h->color, t->color );
             if ( blendColor != HEX_BLANK_COLOR ) {
-                h->color = blendColor;
-                t->color = blendColor;
+                lastBlendColor = blendColor;
+                t->color = HEX_BLANK_COLOR;
+                points++;
             }
         }
     }
+
+    if ( lastBlendColor != HEX_BLANK_COLOR ) {
+        h->color = lastBlendColor;
+    }
+
+
+    return points;
 }
 
 static void drawHud( GameWorld *gw ) {
 
-    DrawText( TextFormat( "Score: %d", gw->score ), 15, 15, 20, RAYWHITE );
-    
+    const int fontSize = 20;
     int spacing = 20;
     int startX = GetScreenWidth() - ( colorQueueSize * queueDrawHex.radius + ( colorQueueSize - 1 ) * spacing ) - 10;
+
+    DrawText( TextFormat( "Score: %d", gw->score ), 15, 15, fontSize, RAYWHITE );
+    const char *nextColorLabel = "Next color ->";
+    int w = MeasureText( nextColorLabel, fontSize );
+    DrawText( nextColorLabel, startX - w - 20, 15, fontSize, RAYWHITE );
     
     for ( int i = 0; i < colorQueueSize; i++ ) {
         queueDrawHex.center.x = startX + ( queueDrawHex.radius + spacing ) * i;
