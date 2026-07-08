@@ -3,9 +3,13 @@ When blending, randomize start like a roulete and animate;
      a) resolucao simultanea: todos sao consumidos, sorteio decide qual resultado sobrevive;
      b) cascata sequencial: funde com o primeiro achado, muda a cor da celula e reavalia os
         vizinhos restantes contra a nova cor -- gera reacao em cadeia de verdade;
+
 Blend animation;
 Destroy animation;
 Create Icon;
+
+Powerup (hex branco, blend com qq coisa)
+Debuf (bruxa bloqueia pedaço do tabuleiro, hex cinza?)
 
 === Cor-alvo ===
 Sortear uma cor-alvo dentre as cores ja desbloqueadas no momento (ex: so secundarias no
@@ -22,6 +26,7 @@ Detectar fim de jogo: tabuleiro cheio e a peca atual nao cabe em nenhuma celula 
   -> estado de game over (tela/mensagem, travar o placar);
 
 === Progressao de dificuldade ===
+Começar com as primárias na fila.
 Expandir o tamanho do tabuleiro (gridId) em marcos fixos de pontuacao;
 A partir de um tamanho de tabuleiro (ex: o 4o dos 6), liberar secundarias na fila de pecas;
 Continuar expandindo o tabuleiro conforme a pontuacao sobe;
@@ -32,13 +37,11 @@ Jogo prossegue ate nao haver mais nenhum movimento possivel;
 
 === Animacoes ===
 Animacao de expansao da grade quando o tamanho do tabuleiro mudar;
+abrir a grade ou explodir e criar a nova?
 
 === Audio ===
 Efeitos sonoros de merge;
 Musica de fundo;
-
-=== Considerado e descartado por ora ===
-Tutorial -- acho que complica demais pro tempo que resta, deixar de fora por enquanto;
 
 === Depois (pos-mecanica) ===
 Reescrever as regras no README;
