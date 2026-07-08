@@ -52,8 +52,8 @@ static Hex queueDrawHex = {
     .neighbors = { 0 }
 };
 
-static int gridQuantities[] = { 3, 5, 7, 9, 11, 13 };
-static int gridRadii[] = { 100, 60, 44, 36, 30, 26 };
+static int gridQuantities[] = { 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41 };
+static int gridRadii[] = { 100, 60, 44, 36, 30, 26, 23, 21, 19, 18, 17, 16, 15, 14, 13, 12, 11, 11, 10, 10 };
 
 static unsigned int availableColors[] = {
     // primary
@@ -78,7 +78,7 @@ static int colorQueueStart = -1;
 static int colorQueueEnd = -1;
 static int colorQueueSize = 0;
 
-static int gridId = 5;
+static int gridId = 2;
 static ColorLimit colorLimit = COLOR_LIMIT_PRIMARY;
 static bool randomizeColorQueueFeeder = true;
 static bool showHexConnections = false;
@@ -90,7 +90,9 @@ GameWorld *createGameWorld( void ) {
 
     GameWorld *gw = (GameWorld*) malloc( sizeof( GameWorld ) );
 
-    /*for ( int i = 0; i < 6; i++ ) {
+    int gridIdCount = ( sizeof( gridQuantities ) / sizeof( gridQuantities[0] ) );
+
+    for ( int i = 0; i < gridIdCount; i++ ) {
         trace( 
             "%d %.2f %.2f %.2f", 
             gridQuantities[i], 
@@ -98,9 +100,9 @@ GameWorld *createGameWorld( void ) {
             apothem( gridRadii[i] ), 
             apothem( gridRadii[i] ) * 2 * gridQuantities[i]
         );
-    }*/
+    }
 
-    gridId = clampInt( gridId, 0, ( sizeof( gridQuantities ) / sizeof( gridQuantities[0] ) ) - 1 );
+    gridId = clampInt( gridId, 0, gridIdCount - 1 );
 
     createHexGrid( gw, gridQuantities[gridId], gridRadii[gridId] );
     connectHexGrid( gw->hexGrid, gw->hexCount );
@@ -294,8 +296,8 @@ static int checkAndBlend( Hex *h ) {
         h->color = lastBlendColor;
     }
 
-
     return points;
+
 }
 
 static void drawHud( GameWorld *gw ) {
@@ -318,5 +320,7 @@ static void drawHud( GameWorld *gw ) {
             drawHexHighlight( &queueDrawHex );
         }
     }
+
+    DrawFPS( 10, GetScreenHeight() - 25 );
 
 }

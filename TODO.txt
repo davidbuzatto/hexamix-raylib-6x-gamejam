@@ -4,12 +4,19 @@ When blending, randomize start like a roulete and animate;
      b) cascata sequencial: funde com o primeiro achado, muda a cor da celula e reavalia os
         vizinhos restantes contra a nova cor -- gera reacao em cadeia de verdade;
 
+Update font using an opensource:
+    https://fonts.google.com/specimen/Geom
+    https://fonts.google.com/specimen/Fredoka
+
 Blend animation;
 Destroy animation;
 Create Icon;
-
+Melhorar a diferenciação das cores.
 Powerup (hex branco, blend com qq coisa)
 Debuf (bruxa bloqueia pedaço do tabuleiro, hex cinza?)
+
+Mudar de fase
+Mostrar o nível
 
 === Cor-alvo ===
 Sortear uma cor-alvo dentre as cores ja desbloqueadas no momento (ex: so secundarias no
