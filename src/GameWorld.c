@@ -19,6 +19,14 @@
 #include "ResourceManager.h"
 #include "Utils.h"
 
+typedef enum GameState {
+    GAME_STATE_START,
+    GAME_STATE_PLAYING,
+    GAME_STATE_LEVEL_TRANSITION,
+    GAME_STATE_GAMEOVER,
+    GAME_STATE_EDITOR,
+} GameState;
+
 typedef enum ColorLimit {
     COLOR_LIMIT_PRIMARY = 2,
     COLOR_LIMIT_SECONDARY = 5,
@@ -28,7 +36,7 @@ typedef enum ColorLimit {
 typedef struct LevelInfo {
     int centerLineQuantity;
     int hexRadius;
-    int pointsToAchieve;
+    int pointsToNextLevel;
 } LevelInfo;
 
 static void createHexGrid( GameWorld *gw, int q, float hexRadius );
@@ -43,34 +51,6 @@ static int checkAndBlend( Hex *h );
 static unsigned int mostFrequentColor( unsigned int *colors, int count );
 
 static void drawHud( GameWorld *gw );
-
-static Hex *mouseOverHex = NULL;
-static Hex mouseHoverDrawHex = {
-    .center = { 0 },
-    .radius = 0,
-    .apothem = 0,
-    .color = 0,
-    .neighbors = { 0 }
-};
-static Hex queueDrawHex = {
-    .center = { 0 },
-    .radius = 15,
-    .apothem = 0,
-    .color = 0,
-    .neighbors = { 0 }
-};
-
-static LevelInfo levels[] = {
-    { .centerLineQuantity = 3,  .hexRadius = 100, .pointsToAchieve = 0    },
-    { .centerLineQuantity = 5,  .hexRadius = 60,  .pointsToAchieve = 30   },
-    { .centerLineQuantity = 7,  .hexRadius = 44,  .pointsToAchieve = 100  },
-    { .centerLineQuantity = 9,  .hexRadius = 36,  .pointsToAchieve = 250  },
-    { .centerLineQuantity = 13, .hexRadius = 26,  .pointsToAchieve = 500  }, 
-    { .centerLineQuantity = 17, .hexRadius = 21,  .pointsToAchieve = 1000 },
-    { .centerLineQuantity = 23, .hexRadius = 17,  .pointsToAchieve = 2000 },
-    { .centerLineQuantity = 31, .hexRadius = 13,  .pointsToAchieve = 3500 }, 
-    { .centerLineQuantity = 41, .hexRadius = 10,  .pointsToAchieve = 6000 }
-};
 
 static unsigned int availableColors[] = {
     // primary
@@ -90,6 +70,43 @@ static unsigned int availableColors[] = {
     HEX_RED_PURPLE, 
 };
 
+static Hex *mouseOverHex = NULL;
+
+static Hex mouseOverDrawHex = {
+    .center = { 0 },
+    .radius = 0,
+    .apothem = 0,
+    .color = 0,
+    .neighbors = { 0 }
+};
+static Hex queueDrawHex = {
+    .center = { 0 },
+    .radius = 15,
+    .apothem = 0,
+    .color = 0,
+    .neighbors = { 0 }
+};
+static Hex editorDrawHex = {
+    .center = { 50, 50 },
+    .radius = 15,
+    .apothem = 0,
+    .color = HEX_RED,
+    .neighbors = { 0 }
+};
+
+static LevelInfo levels[] = {
+    { .centerLineQuantity = 3,  .hexRadius = 100, .pointsToNextLevel = 30   },
+    { .centerLineQuantity = 5,  .hexRadius = 60,  .pointsToNextLevel = 100  },
+    { .centerLineQuantity = 7,  .hexRadius = 44,  .pointsToNextLevel = 250  },
+    { .centerLineQuantity = 9,  .hexRadius = 36,  .pointsToNextLevel = 500  },
+    { .centerLineQuantity = 13, .hexRadius = 26,  .pointsToNextLevel = 1000 }, 
+    { .centerLineQuantity = 17, .hexRadius = 21,  .pointsToNextLevel = 2000 },
+    { .centerLineQuantity = 23, .hexRadius = 17,  .pointsToNextLevel = 3500 },
+    { .centerLineQuantity = 31, .hexRadius = 13,  .pointsToNextLevel = 1000000 }
+};
+int levelQuantity = ( sizeof( levels ) / sizeof( levels[0] ) );
+
+
 static unsigned int colorQueue[COLOR_QUEUE_CAPACITY] = { 0 };
 static int colorQueueStart = -1;
 static int colorQueueEnd = -1;
@@ -97,10 +114,15 @@ static int colorQueueSize = 0;
 
 static MergeAnimation mergeAnimation;
 
-static int currentLevel = 1;
+static int currentLevel = 0;
+static GameState state = GAME_STATE_PLAYING;
 static ColorLimit colorLimit = COLOR_LIMIT_PRIMARY;
-static bool randomizeColorQueueFeeder = false;
+static bool randomizeColorQueueFeeder = true;
 static bool showHexConnections = false;
+
+// editor state
+static int editorSelectedColor = 0;
+static int editorMaxColors = 12;
 
 /**
  * @brief Creates a dinamically allocated GameWorld struct instance.
@@ -109,10 +131,7 @@ GameWorld *createGameWorld( void ) {
 
     GameWorld *gw = (GameWorld*) malloc( sizeof( GameWorld ) );
 
-    int gridTypesCount = ( sizeof( levels ) / sizeof( levels[0] ) );
-
-    currentLevel = clampInt( currentLevel, 0, gridTypesCount - 1 );
-
+    currentLevel = clampInt( currentLevel, 0, levelQuantity - 1 );
     createHexGrid( gw, levels[currentLevel].centerLineQuantity, levels[currentLevel].hexRadius );
     connectHexGrid( gw->hexGrid, gw->hexCount );
     gw->score = 0;
@@ -139,9 +158,17 @@ void destroyGameWorld( GameWorld *gw ) {
  */
 void updateGameWorld( GameWorld *gw, float delta ) {
 
+    if ( IsKeyPressed( KEY_F1 ) ) {
+        state = GAME_STATE_EDITOR;
+    }
+    if ( IsKeyPressed( KEY_F2 ) ) {
+        state = GAME_STATE_PLAYING;
+    }
+
     mouseOverHex = getHexByPoint( gw->hexGrid, gw->hexCount, GetMousePosition() );
 
     if ( !mergeAnimation.running ) {
+
         if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
             if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
                 mouseOverHex->color = pollColorQueue();
@@ -149,6 +176,31 @@ void updateGameWorld( GameWorld *gw, float delta ) {
                 feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
             }
         }
+
+        if ( state == GAME_STATE_EDITOR ) {
+
+            if ( IsMouseButtonPressed( MOUSE_BUTTON_RIGHT ) ) {
+                if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
+                    mouseOverHex->color = editorDrawHex.color;
+                    gw->score += checkAndBlend( mouseOverHex );
+                }
+            }
+
+            if ( IsKeyPressed( KEY_W ) ) {
+                editorSelectedColor = ( editorSelectedColor + 1 ) % editorMaxColors;
+                editorDrawHex.color = availableColors[editorSelectedColor];
+            }
+
+            if ( IsKeyPressed( KEY_S ) ) {
+                editorSelectedColor--;
+                if ( editorSelectedColor < 0 ) {
+                    editorSelectedColor = editorMaxColors - 1;
+                }
+                editorDrawHex.color = availableColors[editorSelectedColor];
+            }
+
+        }
+
     }
 
     mergeAnimation.update( &mergeAnimation, delta );
@@ -167,9 +219,9 @@ void drawGameWorld( GameWorld *gw ) {
 
     if ( !mergeAnimation.running ) {
         if ( mouseOverHex != NULL ) {
-            mouseHoverDrawHex.center = mouseOverHex->center;
-            mouseHoverDrawHex.radius = mouseOverHex->radius;
-            drawHexHighlight( &mouseHoverDrawHex );
+            mouseOverDrawHex.center = mouseOverHex->center;
+            mouseOverDrawHex.radius = mouseOverHex->radius;
+            drawHexHighlight( &mouseOverDrawHex );
         }
     }
 
@@ -394,10 +446,26 @@ static void drawHud( GameWorld *gw ) {
     int spacing = 20;
     int startX = GetScreenWidth() - ( colorQueueSize * queueDrawHex.radius + ( colorQueueSize - 1 ) * spacing ) - 15;
 
-    DrawTextEx( rm->font, TextFormat( "Score: %d", gw->score ), (Vector2) { 15, 15 }, fontSize, 0.0f, RAYWHITE );
+    const char *scoreLabel = "Score: ";
+    Vector2 mScoreLabel = MeasureTextEx( rm->font, scoreLabel, fontSize, 0.0f );
+    DrawTextEx( rm->font, scoreLabel, (Vector2) { 15, 15 }, fontSize, 0.0f, RAYWHITE );
+
+    Rectangle scoreRec = { mScoreLabel.x + 100, 20, 120, 20 };
+    DrawRectangleRoundedLinesEx( scoreRec, 1.0f, 10, 2, RAYWHITE );
+    DrawTextEx( rm->font, TextFormat( "%05d", levels[currentLevel].pointsToNextLevel ), (Vector2) { scoreRec.x + scoreRec.width + 8, 15 }, fontSize, 0.0f, RAYWHITE );
+
+    const char *scoreValueLabel = TextFormat( "%05d", gw->score );
+    Vector2 mScoreValueLabel = MeasureTextEx( rm->font, scoreValueLabel, fontSize, 0.0f );
+    DrawTextEx( rm->font, scoreValueLabel, (Vector2) { scoreRec.x - mScoreValueLabel.x - 8, 15 }, fontSize, 0.0f, RAYWHITE );
+
+    const char *levelLabel = TextFormat( "Level %d", currentLevel + 1 );
+    Vector2 mLevelLabel = MeasureTextEx( rm->font, levelLabel, fontSize, 0.0f );
+    DrawTextEx( rm->font, levelLabel, (Vector2) { GetScreenWidth() / 2 - mLevelLabel.x / 2, GetScreenHeight() - 45 }, fontSize, 0.0f, RAYWHITE );
+
+    // queue
     const char *nextColorLabel = "Next color";
-    Vector2 m = MeasureTextEx( rm->font, nextColorLabel, fontSize, 0.0f );
-    DrawTextEx( rm->font, nextColorLabel, (Vector2) { startX - m.x - 20, 15 }, fontSize, 0.0f, RAYWHITE );
+    Vector2 mNextColorLabel = MeasureTextEx( rm->font, nextColorLabel, fontSize, 0.0f );
+    DrawTextEx( rm->font, nextColorLabel, (Vector2) { startX - mNextColorLabel.x - 20, 15 }, fontSize, 0.0f, RAYWHITE );
     
     for ( int i = 0; i < colorQueueSize; i++ ) {
         queueDrawHex.center.x = startX + ( queueDrawHex.radius + spacing ) * i;
@@ -407,6 +475,16 @@ static void drawHud( GameWorld *gw ) {
         if ( i == 0 ) {
             drawHexHighlight( &queueDrawHex );
         }
+    }
+
+    if ( state == GAME_STATE_EDITOR ) {
+        const char *editorLabel = "Editor";
+        DrawTextEx( rm->font, editorLabel, (Vector2) { 15, GetScreenHeight() - 45 }, fontSize, 0.0f, RAYWHITE );
+        Vector2 mEditorLabel = MeasureTextEx( rm->font, editorLabel, fontSize, 0.0f );
+        editorDrawHex.center.x = 15 + mEditorLabel.x + 20;
+        editorDrawHex.center.y = GetScreenHeight() - 27;
+        drawHex( &editorDrawHex );
+        drawHexHighlight( &editorDrawHex );
     }
 
     //DrawFPS( 10, GetScreenHeight() - 25 );
