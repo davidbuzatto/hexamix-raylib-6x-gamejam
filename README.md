@@ -56,8 +56,8 @@ The rainbow wildcard hexagon blends with any color, clearing the dead-end tertia
 
 ### Links
 
- - YouTube Gameplay: $(YouTube Link)
- - itch.io Release: [$(itch.io Game Page)](https://davidbuzatto.itch.io/hexamix)
+ - YouTube Gameplay: https://youtu.be/AnvAnZ4pfSw
+ - itch.io Release: https://davidbuzatto.itch.io/hexamix
 
 ### License
 
