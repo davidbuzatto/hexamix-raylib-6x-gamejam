@@ -1,6 +1,3 @@
-Efeitos sonoros de merge;
-Efeitos hex especial;
-Música de fundo;
 Melhorar o help (dicas de troca de página).
 
 Reescrever as regras no README;

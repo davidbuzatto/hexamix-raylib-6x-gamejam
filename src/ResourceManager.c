@@ -11,6 +11,7 @@
 #include "raylib/raylib.h"
 
 #include "ResourceManager.h"
+#include "SoundPool.h"
 
 static ResourceManager _rm = { 0 };  // mutable; owned exclusively by this module
 const ResourceManager * const rm = &_rm;
@@ -26,11 +27,18 @@ void loadResourcesResourceManager( void ) {
 
     _rm.howToMergePSTexture = LoadTexture( "resources/images/howto/how-to-merge-ps-black.png" );
     _rm.howToMergePSTTexture = LoadTexture( "resources/images/howto/how-to-merge-pst-black.png" );
-    //_rm.howToMergePSTexture = LoadTexture( "resources/images/howto/how-to-merge-ps-white.png" );
-    //_rm.howToMergePSTTexture = LoadTexture( "resources/images/howto/how-to-merge-pst-white.png" );
 
-    //_rm.soundExample = LoadSound( "resources/sfx/sound.wav" );
-    //_rm.musicExample = LoadMusicStream( "resources/musics/music.ogg" );
+    _rm.placeSoundPool = createSoundPool( "resources/sfx/kenney/click4.ogg", 3 );
+    _rm.placeFailSoundPool = createSoundPool( "resources/sfx/kenney/highDown.ogg", 3 );
+    _rm.mergeSoundPool = createSoundPool( "resources/sfx/kenney/powerUp4.ogg", 6 );
+    _rm.specialHexSoundPool = createSoundPool( "resources/sfx/kenney/zapTwoTone2.ogg", 2 );
+    _rm.explodingSoundPool = createSoundPool( "resources/sfx/kenney/minimize_006.ogg", 2 );
+    _rm.showingSoundPool = createSoundPool( "resources/sfx/kenney/maximize_006.ogg", 2 );
+
+    _rm.gameOverSound = LoadSound( "resources/sfx/kenney/explosionCrunch_000.ogg" );
+
+    //_rm.bgMusic = LoadMusicStream( "resources/musics/kenney/alpha-dance.ogg" );
+    _rm.bgMusic = LoadMusicStream( "resources/musics/kenney/retro-mystic.ogg" );
 
 }
 
@@ -41,7 +49,13 @@ void unloadResourcesResourceManager( void ) {
     UnloadTexture( _rm.howToMergePSTexture );
     UnloadTexture( _rm.howToMergePSTTexture );
 
-    //UnloadSound( _rm.soundExample );
-    //UnloadMusicStream( _rm.musicExample );
+    destroySoundPool( _rm.placeSoundPool );
+    destroySoundPool( _rm.placeFailSoundPool );
+    destroySoundPool( _rm.mergeSoundPool );
+    destroySoundPool( _rm.specialHexSoundPool );
+    destroySoundPool( _rm.explodingSoundPool );
+    destroySoundPool( _rm.showingSoundPool );
+
+    UnloadMusicStream( _rm.bgMusic );
     
 }

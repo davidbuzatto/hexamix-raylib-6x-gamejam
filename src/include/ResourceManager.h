@@ -9,6 +9,8 @@
 
 #include "raylib/raylib.h"
 
+#include "SoundPool.h"
+
 typedef struct ResourceManager {
 
     Font font;
@@ -19,9 +21,16 @@ typedef struct ResourceManager {
     Texture2D howToMergePSTexture;
     Texture2D howToMergePSTTexture;
 
-    /*Texture2D textureExample;
-    Sound soundExample;
-    Music musicExample;*/
+    SoundPool *placeSoundPool;
+    SoundPool *placeFailSoundPool;
+    SoundPool *mergeSoundPool;
+    SoundPool *specialHexSoundPool;
+    SoundPool *explodingSoundPool;
+    SoundPool *showingSoundPool;
+
+    Sound gameOverSound;
+
+    Music bgMusic;
     
 } ResourceManager;
 

@@ -177,7 +177,14 @@ void destroyGameWorld( GameWorld *gw ) {
  */
 void updateGameWorld( GameWorld *gw, float delta ) {
 
-    if ( IsKeyDown( KEY_LEFT_CONTROL ) && IsKeyPressed( KEY_R ) ) {
+    if ( !IsMusicStreamPlaying( rm->bgMusic ) ) {
+        SetMusicVolume( rm->bgMusic, 0.1f );
+        PlayMusicStream( rm->bgMusic );
+    } else {
+        UpdateMusicStream( rm->bgMusic );
+    }
+
+    if ( ( IsKeyDown( KEY_LEFT_CONTROL ) || IsKeyDown( KEY_RIGHT_CONTROL ) ) && IsKeyPressed( KEY_R ) ) {
         resetGameWorld( gw );
     }
 
@@ -256,29 +263,37 @@ void updateGameWorld( GameWorld *gw, float delta ) {
                 state = GAME_STATE_LEVEL_TRANSITION;
 
             } else if ( isBoardFull( gw ) ) {
+                PlaySound( rm->gameOverSound );
                 state = GAME_STATE_GAMEOVER;
             }
 
             if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
                 if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
+                    playSoundFromSoundPool( rm->placeSoundPool );
                     mouseOverHex->color = pollColorQueue();
                     gw->score += checkAndBlend( mouseOverHex );
                     specialHexCount++;
                     feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
+                } else {
+                    playSoundFromSoundPool( rm->placeFailSoundPool );
                 }
             }
 
             if ( editorActive ) {
 
                 if ( IsMouseButtonPressed( MOUSE_BUTTON_RIGHT ) ) {
-                    if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
+                    if ( mouseOverHex != NULL ) {
+                        playSoundFromSoundPool( rm->placeSoundPool );
                         mouseOverHex->color = editorDrawHex.color;
                         gw->score += checkAndBlend( mouseOverHex );
+                    } else {
+                        playSoundFromSoundPool( rm->placeFailSoundPool );
                     }
                 }
 
                 if ( IsMouseButtonPressed( MOUSE_BUTTON_MIDDLE ) ) {
                     if ( mouseOverHex != NULL ) {
+                        playSoundFromSoundPool( rm->placeSoundPool );
                         mouseOverHex->color = HEX_BLANK_COLOR;
                     }
                 }
@@ -467,6 +482,7 @@ static void feedColorQueue( bool randomize, int colorLimitIndex ) {
     static int sequentialPos = 0;
 
     if ( specialHexCount == specialHexSpawn ) {
+        playSoundFromSoundPool( rm->specialHexSoundPool );
         specialHexCount = 0;
         offerColorQueue( HEX_ESPECIAL_COLOR );
         return;
@@ -685,7 +701,7 @@ static void drawPlayingHud( GameWorld *gw ) {
     DrawRectangleRoundedLinesEx( specialHexRec, 1.0f, 10, 3, RAYWHITE );
 
     const char *specialLabel = "SPECIAL";
-    for ( int i = 0; i < strlen( specialLabel ); i++ ) {
+    for ( size_t i = 0; i < strlen( specialLabel ); i++ ) {
         const char *labelChar = TextFormat( "%c", specialLabel[i] );
         Vector2 mChar = MeasureTextEx( rm->font, labelChar, fontSize / 2, 0.0f );
         DrawTextEx( rm->font, TextFormat( "%c", specialLabel[i] ), (Vector2) { specialHexRec.x + specialHexRec.width / 2 - mChar.x / 2, specialHexRec.y + mChar.y * i + 5}, fontSize / 2, 0.0f, BLACK );

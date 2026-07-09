@@ -7,6 +7,8 @@
 #include "Macros.h"
 #include "MergeAnimation.h"
 #include "Hex.h"
+#include "ResourceManager.h"
+#include "SoundPool.h"
 
 static void update( MergeAnimation *ma, float delta );
 static void draw( MergeAnimation *ma );
@@ -79,6 +81,7 @@ static void update( MergeAnimation *ma, float delta ) {
             neighbor->radius = newRadius;
             ma->centralHex.color = ColorToInt( newColor );
         } else {
+            playSoundFromSoundPool( rm->mergeSoundPool );
             ma->neighborCount--;
             ma->currentIndex--;
             ma->animationUnitCounter = animationUnitTime;

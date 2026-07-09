@@ -7,6 +7,8 @@
 #include "Hex.h"
 #include "LevelTransitionAnimation.h"
 #include "Macros.h"
+#include "ResourceManager.h"
+#include "SoundPool.h"
 #include "Utils.h"
 
 static void update( LevelTransitionAnimation *lta, float delta );
@@ -23,6 +25,9 @@ static float explodingCounter = 0.0f;
 static float showingTime = 1.0f;
 static float showingCounter = 0.0f;
 static unsigned int showingColor = 0;
+
+static bool playExplodingSound;
+static bool playShowingSound;
 
 void initLevelTransitionAnimation( LevelTransitionAnimation *lta ) {
     lta->running = false;
@@ -58,6 +63,10 @@ void prepareLevelTransitionAnimation( LevelTransitionAnimation *lta, int chgCent
     explodingCounter = 0.0f;
     showingCounter = 0.0f;
     showingColor = ColorToInt( BLANK );
+
+    playExplodingSound = true;
+    playShowingSound = true;
+
     lta->state = LTA_STATE_EXPLODING_CURRENT_GRID;
 
 }
@@ -82,6 +91,11 @@ static void update( LevelTransitionAnimation *lta, float delta ) {
 
     if ( lta->state == LTA_STATE_EXPLODING_CURRENT_GRID ) {
 
+        if ( playExplodingSound ) {
+            playSoundFromSoundPool( rm->explodingSoundPool );
+            playExplodingSound = false;
+        }
+
         float perc = explodingCounter / explodingTime;
         float easedPerc = ( 1.0f - cosf( perc * PI ) ) / 2.0f;
 
@@ -102,6 +116,11 @@ static void update( LevelTransitionAnimation *lta, float delta ) {
         }
 
     } else if ( lta->state == LTA_STATE_SHOWING_NEXT_GRID ) {
+
+        if ( playShowingSound ) {
+            playSoundFromSoundPool( rm->showingSoundPool );
+            playShowingSound = false;
+        }
 
         float perc = showingCounter / showingTime;
         float easedPerc = ( 1.0f - cosf( perc * PI ) ) / 2.0f;
