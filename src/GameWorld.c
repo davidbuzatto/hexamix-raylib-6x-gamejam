@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <math.h>
 
 #include "raylib/raylib.h"
@@ -50,6 +51,8 @@ static void feedColorQueue( bool randomize, int colorLimitIndex );
 
 static int checkAndBlend( Hex *h );
 static unsigned int mostFrequentColor( unsigned int *colors, int count );
+static bool isBoardFull( GameWorld *gw );
+static void resetGameWorld( GameWorld *gw );
 
 static void drawPlayingHud( GameWorld *gw );
 static void drawHelpHud( GameWorld *gw );
@@ -128,7 +131,7 @@ static bool updateGrid = false;
 
 // special hex spawn
 static int specialHexCount = 0;
-static int specialHexSpawn = 5;
+static int specialHexSpawn = 12;
 
 // editor state
 static int editorSelectedColor = 0;
@@ -173,6 +176,10 @@ void destroyGameWorld( GameWorld *gw ) {
  * @brief Reads user input and updates the state of the game.
  */
 void updateGameWorld( GameWorld *gw, float delta ) {
+
+    if ( IsKeyDown( KEY_LEFT_CONTROL ) && IsKeyPressed( KEY_R ) ) {
+        resetGameWorld( gw );
+    }
 
     if ( state == GAME_STATE_START ) {
 
@@ -245,6 +252,8 @@ void updateGameWorld( GameWorld *gw, float delta ) {
 
                 state = GAME_STATE_LEVEL_TRANSITION;
 
+            } else if ( isBoardFull( gw ) ) {
+                state = GAME_STATE_GAMEOVER;
             }
 
             if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
@@ -289,6 +298,12 @@ void updateGameWorld( GameWorld *gw, float delta ) {
 
         mergeAnimation.update( &mergeAnimation, delta );
 
+    } else if ( state == GAME_STATE_GAMEOVER ) {
+
+        if ( IsKeyPressed( KEY_R ) ) {
+            resetGameWorld( gw );
+        }
+
     }
     
 }
@@ -330,6 +345,15 @@ void drawGameWorld( GameWorld *gw ) {
         mergeAnimation.draw( &mergeAnimation );
         drawPlayingHud( gw );
 
+    } else if ( state == GAME_STATE_GAMEOVER ) {
+        DrawTexturePro(
+            rm->gameOverScreenTexture,
+            (Rectangle) { 0, 0, rm->gameOverScreenTexture.width, rm->gameOverScreenTexture.height },
+            (Rectangle) { 0, 0, GetScreenWidth(), GetScreenHeight() },
+            (Vector2) { 0 },
+            0.0f,
+            WHITE
+        );
     }
 
     EndDrawing();
@@ -555,6 +579,41 @@ static unsigned int mostFrequentColor( unsigned int *colors, int count ) {
 
 }
 
+static bool isBoardFull( GameWorld *gw ) {
+    for ( int i = 0; i < gw->hexCount; i++ ) {
+        if ( gw->hexGrid[i].color == HEX_BLANK_COLOR ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static void resetGameWorld( GameWorld *gw ) {
+
+    currentLevel = 0;
+    createHexGrid( gw, levels[currentLevel].centerLineQuantity, levels[currentLevel].hexRadius );
+    connectHexGrid( gw->hexGrid, gw->hexCount );
+    gw->score = 0;
+
+    // clear and refill the color queue from scratch
+    colorQueueStart = -1;
+    colorQueueEnd = -1;
+    colorQueueSize = 0;
+    specialHexCount = 0;
+    for ( int i = 0; i < COLOR_QUEUE_CAPACITY; i++ ) {
+        feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
+    }
+
+    initMergeAnimation( &mergeAnimation );
+    initLevelTransitionAnimation( &levelTransitionAnimation );
+
+    mouseOverHex = NULL;
+    updateGrid = false;
+
+    state = GAME_STATE_START;
+
+}
+
 static void drawPlayingHud( GameWorld *gw ) {
 
     const int fontSize = 30;
@@ -615,14 +674,19 @@ static void drawPlayingHud( GameWorld *gw ) {
 
     // special hex
     float specialHexPerc = specialHexCount / (float) specialHexSpawn;
-    Rectangle specialHexRec = { GetScreenWidth() - 40, 60, 20, 60 };
+    Rectangle specialHexRec = { GetScreenWidth() - 40, 60, 20, 115 };
     Rectangle specialHexRecValue = { specialHexRec.x, specialHexRec.y + specialHexRec.height - ( specialHexRec.height * specialHexPerc ), specialHexRec.width, specialHexRec.height * specialHexPerc };
 
     float hue = (float) fmod( GetTime() * HEX_SPECIAL_HUE_SPEED, 360.0 );
     DrawRectangleRounded( specialHexRecValue, 1.0f, 10, ColorFromHSV( hue, 1.0f, 1.0f ) );
     DrawRectangleRoundedLinesEx( specialHexRec, 1.0f, 10, 3, RAYWHITE );
 
-    //DrawFPS( 10, GetScreenHeight() - 25 );
+    const char *specialLabel = "SPECIAL";
+    for ( int i = 0; i < strlen( specialLabel ); i++ ) {
+        const char *labelChar = TextFormat( "%c", specialLabel[i] );
+        Vector2 mChar = MeasureTextEx( rm->font, labelChar, fontSize / 2, 0.0f );
+        DrawTextEx( rm->font, TextFormat( "%c", specialLabel[i] ), (Vector2) { specialHexRec.x + specialHexRec.width / 2 - mChar.x / 2, specialHexRec.y + mChar.y * i + 5}, fontSize / 2, 0.0f, BLACK );
+    }
 
 }
 

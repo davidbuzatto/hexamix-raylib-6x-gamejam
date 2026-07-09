@@ -1,7 +1,3 @@
-
-Detectar fim de jogo: tabuleiro cheio e a peça atual não cabe em nenhuma célula vazia.
-    Gerar uma imagem?
-
 Efeitos sonoros de merge;
 Efeitos hex especial;
 Música de fundo;
