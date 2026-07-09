@@ -10,7 +10,7 @@ You are dealt primary colored hexagons — red, yellow and blue — one at a tim
 
 The reward grows exponentially with the size of the merge, so the game is a constant tension between playing it safe and setting up a big combo. Cross a score threshold and the board grows into a larger one, scattering whatever you left behind onto it — so today's mess becomes tomorrow's obstacle. Tertiary colors are dead ends that merge with nothing, slowly clogging the board. The game ends when there is nowhere left to place a piece.
 
-Every so often a white wildcard hexagon appears in the queue. It blends with any color, and it is the only way to clear the dead-end tertiaries.
+Every so often a wildcard hexagon appears in the queue, pulsing and cycling through every hue. It blends with any color, and it is the only way to clear the dead-end tertiaries.
 
 ### Features
 
@@ -19,7 +19,7 @@ Every so often a white wildcard hexagon appears in the queue. It blends with any
  - Exponential scoring: every extra merge doubles the reward, up to 64 points in a single move
  - Eight progressively larger boards, from 7 cells up to 721
  - Leftover pieces carry over into the next board, scattered to new positions
- - A white wildcard hexagon that blends with any color, including tertiary dead ends
+ - A rainbow wildcard hexagon that blends with any color, including tertiary dead ends
  - Built-in illustrated help pages explaining the merge rules
 
 ### Controls
@@ -45,7 +45,7 @@ Pieces merge with every compatible neighbor at once, and crossing a score thresh
 
 ![Merging and advancing to the next board](screenshots/merge-and-transition.gif "Merging and advancing to the next board")
 
-The white wildcard hexagon blends with any color, clearing the dead-end tertiaries that clog the board:
+The rainbow wildcard hexagon blends with any color, clearing the dead-end tertiaries that clog the board:
 
 ![The special hexagon in action](screenshots/special-and-transition.gif "The special hexagon in action")
 
