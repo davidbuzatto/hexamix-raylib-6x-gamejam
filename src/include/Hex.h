@@ -15,7 +15,7 @@ struct Hex {
 };
 
 void initHex( Hex *h, Vector2 center, float radius );
-void drawHex( Hex *h );
+void drawHex( Hex *h, bool drawSpecialEffect );
 void drawHexHighlight( Hex *h );
 void drawHexGrid( Hex *hexGrid, int hexCount, bool showConnections );
 bool checkCollisionPointHex( Vector2 point, Hex *h );

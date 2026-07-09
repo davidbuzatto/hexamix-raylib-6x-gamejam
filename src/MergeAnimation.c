@@ -113,9 +113,9 @@ static void update( MergeAnimation *ma, float delta ) {
 
 static void draw( MergeAnimation *ma ) {
     if ( ma->running ) {
-        drawHex( &ma->centralHex );
+        drawHex( &ma->centralHex, false );
         for ( int i = ma->currentIndex - ma->neighborCount + 1; i <= ma->currentIndex; i++ ) {
-            drawHex( &ma->neighborsToMerge[i] );
+            drawHex( &ma->neighborsToMerge[i], false );
         }
     }
 }

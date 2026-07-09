@@ -1,16 +1,11 @@
-Tela inicial
-Fazer o score progredir com os pontos do momento;
-Powerup (hex branco/mudando de cor?, blend com qq coisa) -> preparado
-Debuf (bruxa bloqueia pedaço do tabuleiro, hex cinza?)
 
-
-Detectar fim de jogo: tabuleiro cheio e a peça atual não cabe em nenhuma célula vazia
-    -> estado de game over (tela/mensagem, travar o placar, explodir os hexes);
-
-Animações
-    Animacao de expansao da grade quando o tamanho do tabuleiro mudar;
+Detectar fim de jogo: tabuleiro cheio e a peça atual não cabe em nenhuma célula vazia.
+    Gerar uma imagem?
 
 Efeitos sonoros de merge;
+Efeitos hex especial;
 Música de fundo;
+Melhorar o help (dicas de troca de página).
+
 Reescrever as regras no README;
 Gerar screenshots/gifs;

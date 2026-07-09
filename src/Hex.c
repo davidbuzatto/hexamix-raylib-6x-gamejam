@@ -12,9 +12,9 @@ static void drawHexConnections( Hex *h );
 static void drawHexGridConnections( Hex *hexGrid, int hexCount, int hexPos );
 
 // especial hex rainbow render
-static float hue = 0;
-static float hueSpeed = 180.0f;
-static int currentFrameTime = 0;
+static const float pulsePeriod = 0.6f;   // seconds per pulse
+static const float pulseExpand = 0.6f;   // extra radius fraction at the pulse peak
+static const float pulseMaxAlpha = 0.8f; // halo opacity at the start of each pulse
 
 void initHex( Hex *h, Vector2 center, float radius ) {
 
@@ -29,15 +29,20 @@ void initHex( Hex *h, Vector2 center, float radius ) {
 
 }
 
-void drawHex( Hex *h ) {
+void drawHex( Hex *h, bool drawSpecialEffect ) {
 
-    if ( h->color == HEX_ESPECIAL_COLOR ) {
-        int frameTime = GetFrameTime();
-        if ( frameTime != currentFrameTime ) {
-            currentFrameTime = frameTime;
-        }
-        hue += hueSpeed * GetFrameTime();
-        DrawPoly( h->center, 6, h->radius, 90.0f, ColorFromHSV( hue, 1.0f, 1.0f ) );
+    if ( h->color == HEX_ESPECIAL_COLOR && drawSpecialEffect ) {
+
+        float hue = (float) fmod( GetTime() * HEX_SPECIAL_HUE_SPEED, 360.0 );
+        Color baseColor = ColorFromHSV( hue, 1.0f, 1.0f );
+        DrawPoly( h->center, 6, h->radius, 90.0f, baseColor );
+
+        // pulsing halo on top: same color, grows past the base radius while
+        // fading out over each period, giving a pulsing feel
+        float pulse = (float) fmod( GetTime(), pulsePeriod ) / pulsePeriod;
+        float pulseRadius = h->radius * ( 1.0f + pulse * pulseExpand );
+        DrawPoly( h->center, 6, pulseRadius, 90.0f, Fade( baseColor, pulseMaxAlpha * ( 1.0f - pulse ) ) );
+
         return;
     }
 
@@ -59,7 +64,7 @@ void drawHexHighlight( Hex *h ) {
 void drawHexGrid( Hex *hexGrid, int hexCount, bool showConnections ) {
     for ( int i = 0; i < hexCount; i++ ) {
         Hex *h = &hexGrid[i];
-        drawHex( h );
+        drawHex( h, false );
     }
     if ( showConnections ) {
         drawHexGridConnections( hexGrid, hexCount, -1 );

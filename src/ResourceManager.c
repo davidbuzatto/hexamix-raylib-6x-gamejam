@@ -19,8 +19,10 @@ void loadResourcesResourceManager( void ) {
     
     _rm.font = LoadFontEx( "resources/fonts/Fredoka/static/Fredoka-Bold.ttf", 30, NULL, 250 );
 
-    _rm.startScreenTexture = LoadTexture( "resources/images/start-screen.png" );
+    _rm.startScreenTexture = LoadTexture( "resources/images/screens/start.png" );
     SetTextureFilter( _rm.startScreenTexture, TEXTURE_FILTER_BILINEAR );
+    _rm.gameOverScreenTexture = LoadTexture( "resources/images/screens/gameover.png" );
+    SetTextureFilter( _rm.gameOverScreenTexture, TEXTURE_FILTER_BILINEAR );
 
     _rm.howToMergePSTexture = LoadTexture( "resources/images/howto/how-to-merge-ps-black.png" );
     _rm.howToMergePSTTexture = LoadTexture( "resources/images/howto/how-to-merge-pst-black.png" );

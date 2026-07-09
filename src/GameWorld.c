@@ -70,6 +70,8 @@ static unsigned int availableColors[] = {
     HEX_BLUE_GREEN, 
     HEX_BLUE_PURPLE, 
     HEX_RED_PURPLE, 
+    // especial
+    HEX_ESPECIAL_COLOR
 };
 
 static Hex *mouseOverHex = NULL;
@@ -126,11 +128,11 @@ static bool updateGrid = false;
 
 // special hex spawn
 static int specialHexCount = 0;
-static int specialHexSpawn = 1;
+static int specialHexSpawn = 5;
 
 // editor state
 static int editorSelectedColor = 0;
-static int editorMaxColors = 12;
+static int editorMaxColors = 13;
 static bool editorActive = false;
 
 // help state
@@ -595,7 +597,7 @@ static void drawPlayingHud( GameWorld *gw ) {
         queueDrawHex.center.x = startX + ( queueDrawHex.radius + spacing ) * i;
         queueDrawHex.center.y = 33;
         queueDrawHex.color = colorQueue[(i+colorQueueStart)%COLOR_QUEUE_CAPACITY];
-        drawHex( &queueDrawHex );
+        drawHex( &queueDrawHex, true );
         if ( i == 0 ) {
             drawHexHighlight( &queueDrawHex );
         }
@@ -607,15 +609,17 @@ static void drawPlayingHud( GameWorld *gw ) {
         Vector2 mEditorLabel = MeasureTextEx( rm->font, editorLabel, fontSize, 0.0f );
         editorDrawHex.center.x = 15 + mEditorLabel.x + 20;
         editorDrawHex.center.y = GetScreenHeight() - 27;
-        drawHex( &editorDrawHex );
+        drawHex( &editorDrawHex, true );
         drawHexHighlight( &editorDrawHex );
     }
 
     // special hex
     float specialHexPerc = specialHexCount / (float) specialHexSpawn;
-    Rectangle specialHexRec = { GetScreenWidth() - 40, 60, 20, 120 };
+    Rectangle specialHexRec = { GetScreenWidth() - 40, 60, 20, 60 };
     Rectangle specialHexRecValue = { specialHexRec.x, specialHexRec.y + specialHexRec.height - ( specialHexRec.height * specialHexPerc ), specialHexRec.width, specialHexRec.height * specialHexPerc };
-    DrawRectangleRounded( specialHexRecValue, 1.0f, 10, PINK );
+
+    float hue = (float) fmod( GetTime() * HEX_SPECIAL_HUE_SPEED, 360.0 );
+    DrawRectangleRounded( specialHexRecValue, 1.0f, 10, ColorFromHSV( hue, 1.0f, 1.0f ) );
     DrawRectangleRoundedLinesEx( specialHexRec, 1.0f, 10, 3, RAYWHITE );
 
     //DrawFPS( 10, GetScreenHeight() - 25 );
