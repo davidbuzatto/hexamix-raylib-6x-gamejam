@@ -1,89 +1,246 @@
 <!doctype html>
-<html lang="EN-us">
-  <head>
+<html lang="en">
+<head>
+
+    <!-- ==================================================================
+         Page metadata
+         ================================================================== -->
     <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
 
-    <title>raylib web game</title>
+    <title>HEXAMIX - A Color Merge Puzzle</title>
 
-    <meta name="title" content="raylib web game">
-    <meta name="description" content="New raylib web videogame, developed using raylib videogames library">
-    <meta name="keywords" content="raylib, programming, examples, html5, C, C++, library, learn, games, videogames">
-    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="HEXAMIX - A Color Merge Puzzle">
+    <meta name="description" content="A strategic hexagon placement puzzle built around color mixing. Merge primaries into secondaries and tertiaries, chase exponential combos, and keep the growing board from clogging up.">
+    <meta name="keywords" content="hexamix, hexagon, puzzle, color, merge, raylib, webassembly, game">
 
-    <!-- Open Graph metatags for sharing -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="raylib web game">
+    <!-- ==================================================================
+         Link previews (Open Graph / Twitter)
+
+         og:image and twitter:image must be ABSOLUTE urls, so they point at
+         the screenshot committed to the repository. After publishing on
+         itch.io, update og:url to the game page.
+         ================================================================== -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="HEXAMIX">
+    <meta property="og:title" content="HEXAMIX - A Color Merge Puzzle">
+    <meta property="og:description" content="A strategic hexagon placement puzzle built around color mixing.">
+    <meta property="og:url" content="https://github.com/davidbuzatto/hex-merge-raylib-6x-gamejam">
+    <meta property="og:image" content="https://raw.githubusercontent.com/davidbuzatto/hex-merge-raylib-6x-gamejam/master/screenshots/hero.png">
     <meta property="og:image:type" content="image/png">
-    <meta property="og:image" content="https://www.raylib.com/common/raylib_logo.png">
-    <meta property="og:image:alt" content="New raylib web videogame, developed using raylib videogames library" />
-    <meta property="og:site_name" content="raylib - example">
-    <meta property="og:url" content="https://www.raylib.com/games.html">
-    <meta property="og:description" content="New raylib web videogame, developed using raylib videogames library">
+    <meta property="og:image:alt" content="HEXAMIX title screen">
 
-    <!-- Twitter metatags for sharing -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@raysan5">
-    <meta name="twitter:title" content="raylib web game">
-    <meta name="twitter:image" content="https://www.raylib.com/common/raylib_logo.png">
-    <meta name="twitter:image:alt" content="New raylib web videogame, developed using raylib videogames library">
-    <meta name="twitter:url" content="https://www.raylib.com/games.html">
-    <meta name="twitter:description" content="New raylib web videogame, developed using raylib videogames library">
+    <meta name="twitter:title" content="HEXAMIX - A Color Merge Puzzle">
+    <meta name="twitter:description" content="A strategic hexagon placement puzzle built around color mixing.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/davidbuzatto/hex-merge-raylib-6x-gamejam/master/screenshots/hero.png">
+    <meta name="twitter:image:alt" content="HEXAMIX title screen">
 
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="https://www.raylib.com/favicon.ico">
+    <!-- The build packs resources/ into a .data bundle, so no image file is
+         served next to this page: the icon is embedded instead. -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,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">
 
     <style>
-        body { 
-          margin: 0px; 
-          overflow: hidden; 
-          background-color: black;
+
+        /* ============================================================
+           Page: a black, unscrollable stage that centers the canvas
+           ============================================================ */
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000000;
         }
-        canvas.emscripten { border: 0px none; background-color: black;}
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================================
+           Canvas
+
+           Never scale the canvas with CSS. raylib maps mouse input using
+           the canvas size, so a CSS scale would offset every click, and
+           the hexagons on the last boards are only a few pixels wide.
+           ============================================================ */
+        canvas.emscripten {
+            display: block;
+            border: 0 none;
+            outline: none;
+            background-color: #000000;
+            touch-action: none;
+            user-select: none;
+        }
+
+        /* ============================================================
+           Loading overlay
+
+           Covers the canvas until the wasm module and the resource
+           bundle finish downloading, which takes a moment: the game
+           ships a font, several full screen images and audio tracks.
+           ============================================================ */
+        #loading {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            background-color: #000000;
+            color: #f5f5f5;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+
+        #loading.hidden {
+            display: none;
+        }
+
+        #loading-title {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 6px;
+        }
+
+        #loading-track {
+            width: 260px;
+            height: 6px;
+            overflow: hidden;
+            border-radius: 3px;
+            background-color: #202020;
+        }
+
+        /* Filled with the game's own palette: red, orange, yellow,
+           green, blue and purple. */
+        #loading-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient( 90deg, #df202e, #ef8c24, #e9d90e, #22a744, #006fd7, #9b14c6 );
+            transition: width 0.15s linear;
+        }
+
+        #loading-message {
+            font-size: 13px;
+            color: #808080;
+        }
+
     </style>
-    <script type='text/javascript' src="https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js"> </script>
-    <script type='text/javascript'>
-        function saveFileFromMEMFSToDisk(memoryFSname, localFSname)     // This can be called by C/C++ code
-        {
-            var isSafari = false; // Not supported, navigator.userAgent access is being restricted
-            //var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-            var data = FS.readFile(memoryFSname);
-            var blob;
 
-            if (isSafari) blob = new Blob([data.buffer], { type: "application/octet-stream" });
-            else blob = new Blob([data.buffer], { type: "application/octet-binary" });
+</head>
+<body>
 
-            // NOTE: SaveAsDialog is a browser setting. For example, in Google Chrome,
-            // in Settings/Advanced/Downloads section you have a setting:
-            // 'Ask where to save each file before downloading' - which you can set true/false.
-            // If you enable this setting it would always ask you and bring the SaveAsDialog
-            saveAs(blob, localFSname);
+    <div id="loading">
+        <div id="loading-title">HEXAMIX</div>
+        <div id="loading-track"><div id="loading-fill"></div></div>
+        <div id="loading-message">Loading...</div>
+    </div>
+
+    <!-- The context menu is suppressed because the in game editor binds the
+         right mouse button. -->
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+
+    <noscript>
+        <p style="color:#f5f5f5;font-family:sans-serif">This game needs JavaScript to run.</p>
+    </noscript>
+
+    <script>
+
+        var loadingOverlay = document.getElementById( "loading" );
+        var loadingFill = document.getElementById( "loading-fill" );
+        var loadingMessage = document.getElementById( "loading-message" );
+
+        var gameCanvas = document.getElementById( "canvas" );
+
+        function hideLoadingOverlay() {
+            loadingOverlay.classList.add( "hidden" );
         }
+
+        /**
+         * Emscripten reports progress as "Downloading data... (12345/67890)".
+         * Split that into a label and a ratio so the bar can be filled; any
+         * other message is shown as plain text.
+         */
+        function showLoadingProgress( text ) {
+
+            var progress = text.match( /([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/ );
+
+            if ( progress ) {
+                loadingMessage.textContent = progress[1].trim();
+                loadingFill.style.width = ( parseFloat( progress[2] ) / parseFloat( progress[4] ) * 100 ) + "%";
+            } else {
+                loadingMessage.textContent = text;
+            }
+
+        }
+
+        /**
+         * Configuration read by the emscripten runtime injected below.
+         */
+        var Module = {
+
+            canvas: gameCanvas,
+
+            print: function( text ) {
+                if ( arguments.length > 1 ) text = Array.prototype.slice.call( arguments ).join( " " );
+                console.log( text );
+            },
+
+            printErr: function( text ) {
+                if ( arguments.length > 1 ) text = Array.prototype.slice.call( arguments ).join( " " );
+                console.error( text );
+            },
+
+            // An empty status means the runtime is ready.
+            setStatus: function( text ) {
+                if ( text ) {
+                    showLoadingProgress( text );
+                } else {
+                    hideLoadingOverlay();
+                }
+            },
+
+            // Called once every pending download has been resolved.
+            totalDependencies: 0,
+            monitorRunDependencies: function( remaining ) {
+
+                this.totalDependencies = Math.max( this.totalDependencies, remaining );
+
+                if ( remaining === 0 ) {
+                    Module.setStatus( "" );
+                } else {
+                    Module.setStatus( "Preparing... (" + ( this.totalDependencies - remaining ) + "/" + this.totalDependencies + ")" );
+                }
+
+            },
+
+            onRuntimeInitialized: function() {
+                // Safety net: the overlay must never outlive the loading, even
+                // if a status message fails to arrive.
+                hideLoadingOverlay();
+                // Give the canvas focus so the keyboard shortcuts work without
+                // requiring a click first.
+                gameCanvas.focus();
+            }
+
+        };
+
+        Module.setStatus( "Loading..." );
+
+        window.onerror = function() {
+            Module.setStatus( "Something went wrong." );
+        };
+
     </script>
-    </head>
-    <body>
-        <canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas>
-        <p id="output" />
-        <script>
-            var Module = {
-                print: (function() {
-                    var element = document.getElementById('output');
-                    if (element) element.value = ''; // clear browser cache
-                    return function(text) {
-                        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-                        console.log(text);
-                        if (element) {
-                          element.value += text + "\n";
-                          element.scrollTop = element.scrollHeight; // focus on bottom
-                        }
-                    };
-                })(),
-                canvas: (function() {
-                    var canvas = document.getElementById('canvas');
-                    return canvas;
-                })()
-            };
-        </script>
-        {{{ SCRIPT }}}
-    </body>
+
+    {{{ SCRIPT }}}
+
+</body>
 </html>
