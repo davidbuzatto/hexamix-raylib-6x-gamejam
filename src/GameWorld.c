@@ -117,7 +117,7 @@ static int colorQueueSize = 0;
 static MergeAnimation mergeAnimation;
 static LevelTransitionAnimation levelTransitionAnimation;
 
-static int currentLevel = 2;
+static int currentLevel = 0;
 static GameState state = GAME_STATE_PLAYING;
 static ColorLimit colorLimit = COLOR_LIMIT_PRIMARY;
 static bool randomizeColorQueueFeeder = true;
@@ -142,8 +142,8 @@ GameWorld *createGameWorld( void ) {
     currentLevel = clampInt( currentLevel, 0, levelQuantity - 1 );
     createHexGrid( gw, levels[currentLevel].centerLineQuantity, levels[currentLevel].hexRadius );
     connectHexGrid( gw->hexGrid, gw->hexCount );
-    //gw->score = currentLevel > 0 ? levels[currentLevel-1].pointsToNextLevel : 0;
-    gw->score = levels[currentLevel].pointsToNextLevel-1;
+    gw->score = currentLevel > 0 ? levels[currentLevel-1].pointsToNextLevel : 0;
+    //gw->score = levels[currentLevel].pointsToNextLevel-1;
 
     for ( int i = 0; i < COLOR_QUEUE_CAPACITY; i++ ) {
         feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
@@ -230,8 +230,6 @@ void updateGameWorld( GameWorld *gw, float delta ) {
 
                 // copy color data to current grid
                 copyColorDataFromNextHexGrid( &levelTransitionAnimation, gw->hexGrid, gw->hexCount );
-
-                gw->score = levels[currentLevel].pointsToNextLevel - 1;
 
                 state = GAME_STATE_LEVEL_TRANSITION;
 

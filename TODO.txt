@@ -1,7 +1,3 @@
-Mudar de fase -> transição por pontuação
-    Implementar transição.
-    Carregar cores junto.
-
 Tela inicial
 Fazer o score progredir com os pontos do momento;
 Powerup (hex branco/mudando de cor?, blend com qq coisa) -> preparado

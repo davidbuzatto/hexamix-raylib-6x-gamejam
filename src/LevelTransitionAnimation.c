@@ -112,12 +112,12 @@ static void update( LevelTransitionAnimation *lta, float delta ) {
         showingCounter += delta;
 
         if ( showingCounter >= showingTime ) {
+            // end on this same frame so the game switches to the playing state
+            // and draws the real grid, avoiding a frame with nothing drawn
             lta->state = LTA_STATE_FINISHED;
+            lta->running = false;
         }
 
-    } else if ( lta->state == LTA_STATE_FINISHED ) {
-        showingCounter = 0.0f;
-        lta->running = false;
     }
 
 }
