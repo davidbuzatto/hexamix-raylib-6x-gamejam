@@ -210,7 +210,10 @@ void updateGameWorld( GameWorld *gw, float delta ) {
 
     } else if ( state == GAME_STATE_PLAYING ) {
 
-        if ( gw->score >= levels[currentLevel].pointsToNextLevel ) {
+        // advance a phase when the threshold is reached; the score is left to
+        // overshoot (kept honest). The guard keeps currentLevel in range so the
+        // last phase is endless and levels[] is never read out of bounds
+        if ( currentLevel < levelQuantity - 1 && gw->score >= levels[currentLevel].pointsToNextLevel ) {
             currentLevel++;
             updateGrid = true;
         }
