@@ -1,43 +1,15 @@
-When blending, randomize start like a roulete and animate;
-  -> decidir a regra quando ha multiplos vizinhos compativeis com resultados diferentes:
-     a) resolucao simultanea: todos sao consumidos, sorteio decide qual resultado sobrevive;
-     b) cascata sequencial: funde com o primeiro achado, muda a cor da celula e reavalia os
-        vizinhos restantes contra a nova cor -- gera reacao em cadeia de verdade;
-
-Blend animation;
-Destroy animation;
-
-Powerup (hex branco/mudando de cor?, blend com qq coisa)
+Powerup (hex branco/mudando de cor?, blend com qq coisa) -> preparado
 Debuf (bruxa bloqueia pedaço do tabuleiro, hex cinza?)
 
-Mudar de fase
-Mostrar o nível
+Mudar de fase -> transição por pontuação
+Mostrar em qual fase está
 
-=== Cor-alvo ===
-Sortear uma cor-alvo dentre as cores ja desbloqueadas no momento (ex: so secundarias no
-  inicio, depois tambem terciarias conforme desbloqueado);
-Mostrar o alvo na tela com o hex code (ex: "Alvo: #F6841D");
-Ao ocorrer qualquer blend que resulte na cor-alvo, ganhar bonus de pontos e sortear um
-  novo alvo na hora;
-Bonus escalando com a raridade da cor (terciaria vale mais que secundaria);
-(depois, se sobrar tempo) alvo com prazo/expiracao para dar mais pressao, ao inves de
-  so bonus passivo;
+Mostrar progresso de pontuação.
 
-=== Estado de jogo ===
 Detectar fim de jogo: tabuleiro cheio e a peca atual nao cabe em nenhuma celula vazia
-  -> estado de game over (tela/mensagem, travar o placar);
+  -> estado de game over (tela/mensagem, travar o placar, explodir os hexes);
 
-=== Progressao de dificuldade ===
-Começar com as primárias na fila.
-Expandir o tamanho do tabuleiro (gridId) em marcos fixos de pontuacao;
-A partir de um tamanho de tabuleiro (ex: o 4o dos 6), liberar secundarias na fila de pecas;
-Continuar expandindo o tabuleiro conforme a pontuacao sobe;
-Liberar terciarias na fila em um marco mais avancado (sem volta depois disso);
-Jogo prossegue ate nao haver mais nenhum movimento possivel;
-(ideia extra) de vez em quando, spawnar uma peca aleatoria direto no tabuleiro (fora da
-  fila) para aumentar o desafio;
-
-=== Animacoes ===
+Aniamções
 Animacao de expansao da grade quando o tamanho do tabuleiro mudar;
 abrir a grade ou explodir e criar a nova?
 

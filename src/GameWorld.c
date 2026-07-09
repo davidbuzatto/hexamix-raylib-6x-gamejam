@@ -25,6 +25,12 @@ typedef enum ColorLimit {
     COLOR_LIMIT_TERTIARY = 11
 } ColorLimit;
 
+typedef struct LevelInfo {
+    int centerLineQuantity;
+    int hexRadius;
+    int pointsToAchieve;
+} LevelInfo;
+
 static void createHexGrid( GameWorld *gw, int q, float hexRadius );
 static void connectHexGrid( Hex *hexGrid, int hexCount );
 static void connectHexToNeighbors( int sourceIndex, Hex *hexGrid, int hexCount );
@@ -54,8 +60,17 @@ static Hex queueDrawHex = {
     .neighbors = { 0 }
 };
 
-static int gridQuantities[] = { 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41 };
-static int gridRadii[] = { 100, 60, 44, 36, 30, 26, 23, 21, 19, 18, 17, 16, 15, 14, 13, 12, 11, 11, 10, 10 };
+static LevelInfo levels[] = {
+    { .centerLineQuantity = 3,  .hexRadius = 100, .pointsToAchieve = 0    },
+    { .centerLineQuantity = 5,  .hexRadius = 60,  .pointsToAchieve = 30   },
+    { .centerLineQuantity = 7,  .hexRadius = 44,  .pointsToAchieve = 100  },
+    { .centerLineQuantity = 9,  .hexRadius = 36,  .pointsToAchieve = 250  },
+    { .centerLineQuantity = 13, .hexRadius = 26,  .pointsToAchieve = 500  }, 
+    { .centerLineQuantity = 17, .hexRadius = 21,  .pointsToAchieve = 1000 },
+    { .centerLineQuantity = 23, .hexRadius = 17,  .pointsToAchieve = 2000 },
+    { .centerLineQuantity = 31, .hexRadius = 13,  .pointsToAchieve = 3500 }, 
+    { .centerLineQuantity = 41, .hexRadius = 10,  .pointsToAchieve = 6000 }
+};
 
 static unsigned int availableColors[] = {
     // primary
@@ -82,7 +97,7 @@ static int colorQueueSize = 0;
 
 static MergeAnimation mergeAnimation;
 
-static int gridId = 0;
+static int currentLevel = 1;
 static ColorLimit colorLimit = COLOR_LIMIT_PRIMARY;
 static bool randomizeColorQueueFeeder = false;
 static bool showHexConnections = false;
@@ -94,22 +109,11 @@ GameWorld *createGameWorld( void ) {
 
     GameWorld *gw = (GameWorld*) malloc( sizeof( GameWorld ) );
 
-    int gridIdCount = ( sizeof( gridQuantities ) / sizeof( gridQuantities[0] ) );
+    int gridTypesCount = ( sizeof( levels ) / sizeof( levels[0] ) );
 
-    // grid measuring tests
-    /*for ( int i = 0; i < gridIdCount; i++ ) {
-        trace( 
-            "%d %.2f %.2f %.2f", 
-            gridQuantities[i], 
-            gridRadii[i], 
-            apothem( gridRadii[i] ), 
-            apothem( gridRadii[i] ) * 2 * gridQuantities[i]
-        );
-    }*/
+    currentLevel = clampInt( currentLevel, 0, gridTypesCount - 1 );
 
-    gridId = clampInt( gridId, 0, gridIdCount - 1 );
-
-    createHexGrid( gw, gridQuantities[gridId], gridRadii[gridId] );
+    createHexGrid( gw, levels[currentLevel].centerLineQuantity, levels[currentLevel].hexRadius );
     connectHexGrid( gw->hexGrid, gw->hexCount );
     gw->score = 0;
 

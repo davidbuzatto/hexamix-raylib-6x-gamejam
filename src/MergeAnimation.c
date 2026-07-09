@@ -11,7 +11,7 @@
 static void update( MergeAnimation *ma, float delta );
 static void draw( MergeAnimation *ma );
 
-static const float animationUnitTime = 0.3f;
+static const float animationUnitTime = 0.2f;
 
 void initMergeAnimation( MergeAnimation *ma ) {
     ma->running = false;
