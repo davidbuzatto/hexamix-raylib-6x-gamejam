@@ -55,6 +55,7 @@ void prepareLevelTransitionAnimation( LevelTransitionAnimation *lta, int chgCent
 
     explodingCounter = 0.0f;
     showingCounter = 0.0f;
+    showingColor = ColorToInt( Fade( DARKGRAY, 0.0f ) );
     lta->state = LTA_STATE_EXPLODING_CURRENT_GRID;
 
 }
