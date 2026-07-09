@@ -15,6 +15,7 @@
 
 #include "GameWorld.h"
 #include "Macros.h"
+#include "MergeAnimation.h"
 #include "ResourceManager.h"
 #include "Utils.h"
 
@@ -78,9 +79,11 @@ static int colorQueueStart = -1;
 static int colorQueueEnd = -1;
 static int colorQueueSize = 0;
 
-static int gridId = 2;
+static MergeAnimation mergeAnimation;
+
+static int gridId = 0;
 static ColorLimit colorLimit = COLOR_LIMIT_PRIMARY;
-static bool randomizeColorQueueFeeder = true;
+static bool randomizeColorQueueFeeder = false;
 static bool showHexConnections = false;
 
 /**
@@ -113,6 +116,8 @@ GameWorld *createGameWorld( void ) {
         feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
     }
 
+    initMergeAnimation( &mergeAnimation );
+
     return gw;
 
 }
@@ -128,16 +133,63 @@ void destroyGameWorld( GameWorld *gw ) {
  * @brief Reads user input and updates the state of the game.
  */
 void updateGameWorld( GameWorld *gw, float delta ) {
-    
+
     mouseOverHex = getHexByPoint( gw->hexGrid, gw->hexCount, GetMousePosition() );
 
-    if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
-        if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
-            mouseOverHex->color = pollColorQueue();
-            gw->score += checkAndBlend( mouseOverHex );
-            feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
+    if ( !mergeAnimation.running ) {
+
+        if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
+            if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
+                mouseOverHex->color = pollColorQueue();
+                gw->score += checkAndBlend( mouseOverHex );
+                feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
+            }
         }
+
+        if ( IsMouseButtonPressed( MOUSE_BUTTON_RIGHT ) ) {
+
+            /*gw->hexGrid[0].color = HEX_BLUE;
+            gw->hexGrid[1].color = HEX_YELLOW;
+            gw->hexGrid[2].color = HEX_YELLOW;
+            gw->hexGrid[3].color = HEX_BLANK_COLOR;
+            gw->hexGrid[4].color = HEX_BLUE;
+            gw->hexGrid[5].color = HEX_BLUE;
+            gw->hexGrid[6].color = HEX_YELLOW;*/
+
+            gw->hexGrid[0].color = HEX_BLUE;
+            gw->hexGrid[1].color = HEX_BLANK_COLOR;
+            gw->hexGrid[2].color = HEX_BLANK_COLOR;
+            gw->hexGrid[3].color = HEX_BLANK_COLOR;
+            gw->hexGrid[4].color = HEX_BLUE;
+            gw->hexGrid[5].color = HEX_BLUE;
+            gw->hexGrid[6].color = HEX_BLANK_COLOR;
+
+
+            /*gw->hexGrid[0].color = HEX_RED;
+            gw->hexGrid[1].color = HEX_YELLOW;
+            gw->hexGrid[2].color = HEX_BLUE;
+            gw->hexGrid[3].color = HEX_ORANGE;
+            gw->hexGrid[4].color = HEX_GREEN;
+            gw->hexGrid[5].color = HEX_PURPLE;
+            gw->hexGrid[6].color = HEX_BLUE_GREEN;
+            prepareMergeAnimation( &mergeAnimation, &gw->hexGrid[3] );
+            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[4] );
+            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[6] );
+            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[5] );
+            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[2] );
+            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[0] );
+            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[1] );
+            gw->hexGrid[0].color = HEX_BLANK_COLOR;
+            gw->hexGrid[1].color = HEX_BLANK_COLOR;
+            gw->hexGrid[2].color = HEX_BLANK_COLOR;
+            gw->hexGrid[4].color = HEX_BLANK_COLOR;
+            gw->hexGrid[5].color = HEX_BLANK_COLOR;
+            gw->hexGrid[6].color = HEX_BLANK_COLOR;*/
+        }
+
     }
+
+    mergeAnimation.update( &mergeAnimation, delta );
 
 }
 
@@ -151,11 +203,15 @@ void drawGameWorld( GameWorld *gw ) {
 
     drawHexGrid( gw->hexGrid, gw->hexCount, showHexConnections );
 
-    if ( mouseOverHex != NULL ) {
-        mouseHoverDrawHex.center = mouseOverHex->center;
-        mouseHoverDrawHex.radius = mouseOverHex->radius;
-        drawHexHighlight( &mouseHoverDrawHex );
+    if ( !mergeAnimation.running ) {
+        if ( mouseOverHex != NULL ) {
+            mouseHoverDrawHex.center = mouseOverHex->center;
+            mouseHoverDrawHex.radius = mouseOverHex->radius;
+            drawHexHighlight( &mouseHoverDrawHex );
+        }
     }
+
+    mergeAnimation.draw( &mergeAnimation );
     
     drawHud( gw );
 
@@ -279,18 +335,35 @@ static void feedColorQueue( bool randomize, int colorLimitIndex ) {
 static int checkAndBlend( Hex *h ) {
 
     int points = 0;
-    int lastBlendColor =  HEX_BLANK_COLOR;
+    int lastBlendColor = HEX_BLANK_COLOR;
+
+    bool needsToPrepareMergeAnimation = true;
 
     for ( int i = 0; i < 6; i++ ) {
+
         Hex *t = h->neighbors[i];
+
         if ( t != NULL ) {
+
             int blendColor = colorBlend( h->color, t->color );
+
             if ( blendColor != HEX_BLANK_COLOR ) {
+
+                if ( needsToPrepareMergeAnimation ) {
+                    prepareMergeAnimation( &mergeAnimation, h );
+                    needsToPrepareMergeAnimation = false;
+                }
+
                 lastBlendColor = blendColor;
+                addMergeAnimationNeighbor( &mergeAnimation, t );
                 t->color = HEX_BLANK_COLOR;
+
                 points++;
+
             }
+
         }
+
     }
 
     if ( lastBlendColor != HEX_BLANK_COLOR ) {
