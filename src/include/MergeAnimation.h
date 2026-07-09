@@ -12,15 +12,18 @@ struct MergeAnimation {
 
     Hex centralHex;
     Hex neighborsToMerge[6];
+    unsigned int neighborBlendColor[6];
     int neighborCount;
+    int currentIndex;
     float animationUnitCounter;
     bool running;
 
     bool prepareNextAnimationInstance;
     Vector2 neighborToMergeStartPos;
     float neighborToMergeStartRadius;
-    unsigned int neighborToMergeStartColor;
-    unsigned int centralHexStartColor;
+    unsigned int centralOriginalColor;
+    unsigned int finalColor;
+    bool inFinalTransition;
 
     void (*update)( MergeAnimation *ma, float delta );
     void (*draw)( MergeAnimation *ma );
@@ -29,4 +32,5 @@ struct MergeAnimation {
 
 void initMergeAnimation( MergeAnimation *ma );
 void prepareMergeAnimation( MergeAnimation *ma, Hex *centralHex );
-void addMergeAnimationNeighbor( MergeAnimation *ma, Hex *neighborHex );
+void addMergeAnimationNeighbor( MergeAnimation *ma, Hex *neighborHex, unsigned int blendColor );
+void setMergeAnimationFinalColor( MergeAnimation *ma, unsigned int finalColor );

@@ -25,7 +25,7 @@ typedef enum ColorLimit {
     COLOR_LIMIT_TERTIARY = 11
 } ColorLimit;
 
-static void createHexGrid( GameWorld *gw, int q, float radius );
+static void createHexGrid( GameWorld *gw, int q, float hexRadius );
 static void connectHexGrid( Hex *hexGrid, int hexCount );
 static void connectHexToNeighbors( int sourceIndex, Hex *hexGrid, int hexCount );
 
@@ -34,6 +34,7 @@ static void offerColorQueue( unsigned int color );
 static void feedColorQueue( bool randomize, int colorLimitIndex );
 
 static int checkAndBlend( Hex *h );
+static unsigned int mostFrequentColor( unsigned int *colors, int count );
 
 static void drawHud( GameWorld *gw );
 
@@ -137,7 +138,6 @@ void updateGameWorld( GameWorld *gw, float delta ) {
     mouseOverHex = getHexByPoint( gw->hexGrid, gw->hexCount, GetMousePosition() );
 
     if ( !mergeAnimation.running ) {
-
         if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
             if ( mouseOverHex != NULL && mouseOverHex->color == HEX_BLANK_COLOR ) {
                 mouseOverHex->color = pollColorQueue();
@@ -145,48 +145,6 @@ void updateGameWorld( GameWorld *gw, float delta ) {
                 feedColorQueue( randomizeColorQueueFeeder, (int) colorLimit );
             }
         }
-
-        if ( IsMouseButtonPressed( MOUSE_BUTTON_RIGHT ) ) {
-
-            /*gw->hexGrid[0].color = HEX_BLUE;
-            gw->hexGrid[1].color = HEX_YELLOW;
-            gw->hexGrid[2].color = HEX_YELLOW;
-            gw->hexGrid[3].color = HEX_BLANK_COLOR;
-            gw->hexGrid[4].color = HEX_BLUE;
-            gw->hexGrid[5].color = HEX_BLUE;
-            gw->hexGrid[6].color = HEX_YELLOW;*/
-
-            gw->hexGrid[0].color = HEX_BLUE;
-            gw->hexGrid[1].color = HEX_BLANK_COLOR;
-            gw->hexGrid[2].color = HEX_BLANK_COLOR;
-            gw->hexGrid[3].color = HEX_BLANK_COLOR;
-            gw->hexGrid[4].color = HEX_BLUE;
-            gw->hexGrid[5].color = HEX_BLUE;
-            gw->hexGrid[6].color = HEX_BLANK_COLOR;
-
-
-            /*gw->hexGrid[0].color = HEX_RED;
-            gw->hexGrid[1].color = HEX_YELLOW;
-            gw->hexGrid[2].color = HEX_BLUE;
-            gw->hexGrid[3].color = HEX_ORANGE;
-            gw->hexGrid[4].color = HEX_GREEN;
-            gw->hexGrid[5].color = HEX_PURPLE;
-            gw->hexGrid[6].color = HEX_BLUE_GREEN;
-            prepareMergeAnimation( &mergeAnimation, &gw->hexGrid[3] );
-            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[4] );
-            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[6] );
-            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[5] );
-            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[2] );
-            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[0] );
-            addMergeAnimationNeighbor( &mergeAnimation, &gw->hexGrid[1] );
-            gw->hexGrid[0].color = HEX_BLANK_COLOR;
-            gw->hexGrid[1].color = HEX_BLANK_COLOR;
-            gw->hexGrid[2].color = HEX_BLANK_COLOR;
-            gw->hexGrid[4].color = HEX_BLANK_COLOR;
-            gw->hexGrid[5].color = HEX_BLANK_COLOR;
-            gw->hexGrid[6].color = HEX_BLANK_COLOR;*/
-        }
-
     }
 
     mergeAnimation.update( &mergeAnimation, delta );
@@ -219,11 +177,11 @@ void drawGameWorld( GameWorld *gw ) {
 
 }
 
-static void createHexGrid( GameWorld *gw, int centerLineQuantity, float radius ) {
+static void createHexGrid( GameWorld *gw, int centerLineQuantity, float hexRadius ) {
 
     gw->hexCount = 0;
     
-    float hApothem = apothem( radius );
+    float hApothem = apothem( hexRadius );
     float vApothem = apothem( 2 * hApothem );
     float startX = GetScreenWidth() / 2 - ( hApothem * 2 * centerLineQuantity ) / 2 + hApothem;
     float startY = GetScreenHeight() / 2 - ( vApothem * centerLineQuantity ) / 2 + vApothem / 2;
@@ -240,7 +198,7 @@ static void createHexGrid( GameWorld *gw, int centerLineQuantity, float radius )
         for ( int j = 0; j < lineQuantity; j++ ) {
             Vector2 center = { startX + hApothem * 2 * j + offset, startY + vApothem * i };
             if ( gw->hexCount < MAX_HEX_GRID_COUNT ) {
-                initHex( &gw->hexGrid[gw->hexCount++], center, radius );
+                initHex( &gw->hexGrid[gw->hexCount++], center, hexRadius );
             }
         }
         if ( decrease ) {
@@ -331,11 +289,13 @@ static void feedColorQueue( bool randomize, int colorLimitIndex ) {
 
 }
 
-// checks all neightbors and blend with the last compatible
+// cascades through the neighbors, blending as long as the accumulated color
+// stays compatible with the next neighbor being scanned
 static int checkAndBlend( Hex *h ) {
 
-    int points = 0;
-    int lastBlendColor = HEX_BLANK_COLOR;
+    unsigned int centralColor = h->color;
+    unsigned int blendResults[6];
+    int mergeCount = 0;
 
     bool needsToPrepareMergeAnimation = true;
 
@@ -345,7 +305,9 @@ static int checkAndBlend( Hex *h ) {
 
         if ( t != NULL ) {
 
-            int blendColor = colorBlend( h->color, t->color );
+            // every neighbor is tested against the original central color, so
+            // there is no chain reaction: the star merges all compatibles at once
+            unsigned int blendColor = colorBlend( centralColor, t->color );
 
             if ( blendColor != HEX_BLANK_COLOR ) {
 
@@ -354,11 +316,12 @@ static int checkAndBlend( Hex *h ) {
                     needsToPrepareMergeAnimation = false;
                 }
 
-                lastBlendColor = blendColor;
-                addMergeAnimationNeighbor( &mergeAnimation, t );
+                addMergeAnimationNeighbor( &mergeAnimation, t, blendColor );
+
+                blendResults[mergeCount] = blendColor;
                 t->color = HEX_BLANK_COLOR;
 
-                points++;
+                mergeCount++;
 
             }
 
@@ -366,11 +329,58 @@ static int checkAndBlend( Hex *h ) {
 
     }
 
-    if ( lastBlendColor != HEX_BLANK_COLOR ) {
-        h->color = lastBlendColor;
+    if ( mergeCount > 0 ) {
+        // the central hex settles on the most used blend color (random on ties)
+        unsigned int finalColor = mostFrequentColor( blendResults, mergeCount );
+        h->color = finalColor;
+        setMergeAnimationFinalColor( &mergeAnimation, finalColor );
     }
 
-    return points;
+    // each successful merge doubles the reward: N merges -> 2^N
+    return mergeCount > 0 ? ( 1 << mergeCount ) : 0;
+
+}
+
+// returns the color that appears the most in the list, breaking ties randomly
+static unsigned int mostFrequentColor( unsigned int *colors, int count ) {
+
+    unsigned int tied[6];
+    int tiedCount = 0;
+    int bestCount = 0;
+
+    for ( int i = 0; i < count; i++ ) {
+
+        int occurrences = 0;
+        for ( int j = 0; j < count; j++ ) {
+            if ( colors[j] == colors[i] ) {
+                occurrences++;
+            }
+        }
+
+        if ( occurrences > bestCount ) {
+            bestCount = occurrences;
+            tied[0] = colors[i];
+            tiedCount = 1;
+        } else if ( occurrences == bestCount ) {
+            bool alreadyTied = false;
+            for ( int k = 0; k < tiedCount; k++ ) {
+                if ( tied[k] == colors[i] ) {
+                    alreadyTied = true;
+                    break;
+                }
+            }
+            if ( !alreadyTied ) {
+                tied[tiedCount++] = colors[i];
+            }
+        }
+
+    }
+
+    if ( tiedCount == 0 ) {
+        return HEX_BLANK_COLOR;
+    }
+
+    return tied[GetRandomValue( 0, tiedCount - 1 )];
 
 }
 
@@ -395,6 +405,6 @@ static void drawHud( GameWorld *gw ) {
         }
     }
 
-    DrawFPS( 10, GetScreenHeight() - 25 );
+    //DrawFPS( 10, GetScreenHeight() - 25 );
 
 }
